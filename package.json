@@ -1,0 +1,15 @@
+{
+  "name": "finanace_app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix client\"",
+    "build": "npm run build --prefix client",
+    "start": "node backend/server.js"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
+
