@@ -1,167 +1,46 @@
-// import express from "express";
-// import mongoose from "mongoose";
-// import cors from "cors";
-// import helmet from "helmet";
-// import rateLimit from "express-rate-limit";
-// import dotenv from "dotenv";
-
-// // Routes
-// import userPaymentRoutes from "./routes/userPayments.js";
-
-// // Load environment variables
-// dotenv.config();
-
-// const app = express();
-
-// // Security Middleware
-// app.use(helmet());
-
-// // Rate Limiting
-// const limiter = rateLimit({
-//   windowMs: 15 * 60 * 1000, // 15 minutes
-//   max: 100, // limit each IP to 100 requests per windowMs
-//   message: "Too many requests from this IP, please try again later.",
-// });
-// app.use(limiter);
-
-// // CORS
-// app.use(
-//   cors({
-//     origin: process.env.CLIENT_URL || "*",
-//     credentials: true,
-//   })
-// );
-
-// // REQUIRED for Vercel to stop crashing
-// app.set("trust proxy", 1);
-
-// // Body Parser Middleware
-// app.use(express.json({ limit: "10mb" }));
-// app.use(express.urlencoded({ extended: true }));
-
-// // Database Connection
-// const connectDB = async () => {
-//   try {
-//     if (mongoose.connection.readyState === 0) {
-//       await mongoose.connect(process.env.MONGODB_URI);
-//       console.log("MongoDB Connected");
-//     }
-//   } catch (error) {
-//     console.error("Database connection error:", error.message);
-//     throw error;
-//   }
-// };
-
-// // Routes
-// app.use("/api/user-payments", userPaymentRoutes);
-
-// // Health Check Route
-// app.get("/api/health", async (req, res) => {
-//   try {
-//     await connectDB();
-//     res.status(200).json({
-//       success: true,
-//       message: "Server is running successfully",
-//       timestamp: new Date().toISOString(),
-//       environment: process.env.NODE_ENV,
-//       database:
-//         mongoose.connection.readyState === 1 ? "connected" : "disconnected",
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: "Database connection failed",
-//       error: error.message,
-//     });
-//   }
-// });
-
-// // Root route
-// app.get("/", (req, res) => {
-//   res.json({
-//     success: true,
-//     message: "Chit Fund Payment API is running!",
-//     version: "1.0.0",
-//     endpoints: {
-//       health: "/api/health",
-//       userPayments: "/api/user-payments",
-//       documentation: "Available endpoints listed in health check",
-//     },
-//   });
-// });
-
-// // 404 Handler
-// app.use("*", (req, res) => {
-//   res.status(404).json({
-//     success: false,
-//     message: "Route not found",
-//   });
-// });
-
-// // Global Error Handler
-// app.use((error, req, res, next) => {
-//   console.error("Error:", error);
-//   res.status(500).json({
-//     success: false,
-//     message: "Internal server error",
-//     error: process.env.NODE_ENV === "production" ? {} : error.message,
-//   });
-// });
-
-// // For Vercel serverless deployment
-// const handler = app;
-
-// // For local development
-// if (process.env.NODE_ENV !== "production") {
-//   const PORT = process.env.PORT || 5000;
-//   const startServer = async () => {
-//     try {
-//       await connectDB();
-//       app.listen(PORT, () => {
-//         console.log(`Server running on port ${PORT}`);
-//         console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
-//       });
-//     } catch (error) {
-//       console.error("Failed to start server:", error);
-//       process.exit(1);
-//     }
-//   };
-
-//   startServer();
-// }
-
-// export default handler;
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import helmet from "helmet";
-import rateLimit from "express-rate-limit";
 import dotenv from "dotenv";
 
 // Routes
 import userPaymentRoutes from "./routes/userPayments.js";
 
-// Load Env
+// Load Environment Variables
 dotenv.config();
 
 const app = express();
 
-/* ------------------------------ SECURITY ------------------------------ */
-app.use(helmet());
-
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: "Too many requests from this IP, please try again later.",
+/* ----------------------- PROCESS CRASH PROTECTION ----------------------- */
+// Prevent Node.js process from exiting on unexpected network or query errors
+process.on("unhandledRejection", (reason) => {
+  console.error("⚠️ Unhandled Rejection (prevented crash):", reason);
 });
-app.use(limiter);
 
+process.on("uncaughtException", (error) => {
+  console.error("⚠️ Uncaught Exception (prevented crash):", error);
+});
+
+/* ------------------------------ SECURITY & CORS ------------------------------ */
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
+
+// Resilient CORS configuration - allows requests from any origin with credentials
 app.use(
   cors({
-    origin: true,
+    origin: (origin, callback) => callback(null, true),
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+    ],
   })
 );
 
@@ -172,31 +51,56 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 /* ------------------------------ DATABASE ------------------------------ */
+let isConnecting = false;
+
 const connectDB = async () => {
-  if (mongoose.connection.readyState >= 1) return;
+  if (mongoose.connection.readyState === 1) return;
+  if (isConnecting) return;
 
   if (!process.env.MONGODB_URI) {
-    console.error("❌ MONGODB_URI NOT FOUND");
+    console.error("❌ MONGODB_URI missing in environment variables.");
     throw new Error("MONGODB_URI missing in environment variables.");
   }
 
+  isConnecting = true;
   try {
     await mongoose.connect(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 8000,
+      socketTimeoutMS: 45000,
     });
-    console.log("MongoDB Connected");
+    console.log("✅ MongoDB Connected Successfully");
   } catch (error) {
-    console.error("Database connection error:", error.message);
+    console.error("❌ Database connection error:", error.message);
     throw error;
+  } finally {
+    isConnecting = false;
   }
 };
+
+// Reconnect listeners
+mongoose.connection.on("disconnected", () => {
+  console.log("⚠️ MongoDB disconnected! Attempting auto-reconnect...");
+  connectDB().catch((err) => console.error("Reconnect error:", err.message));
+});
+
+mongoose.connection.on("error", (err) => {
+  console.error("⚠️ MongoDB connection error:", err.message);
+});
 
 /* ------------------------------ ROUTES ------------------------------ */
 app.use(
   "/api/user-payments",
   async (req, res, next) => {
-    await connectDB(); // Ensure DB connected before hitting router
-    next();
+    try {
+      await connectDB();
+      next();
+    } catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: "Database connection failed",
+        error: err.message,
+      });
+    }
   },
   userPaymentRoutes
 );
@@ -207,9 +111,9 @@ app.get("/api/health", async (req, res) => {
     await connectDB();
     res.status(200).json({
       success: true,
-      message: "Server is running",
+      message: "Server is running healthy",
       timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV,
+      environment: process.env.NODE_ENV || "development",
       database:
         mongoose.connection.readyState === 1 ? "connected" : "disconnected",
     });
@@ -226,23 +130,24 @@ app.get("/api/health", async (req, res) => {
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "Chit Fund Payment API is running!",
+    message: "Raghuram Finance / Chit Fund API is running!",
     version: "1.0.0",
   });
 });
 
-// 404
+// 404 Handler
 app.use("*", (req, res) => {
   res.status(404).json({ success: false, message: "Route not found" });
 });
 
-// Global Error Handler
+// Global Error Handler with guaranteed CORS headers
 app.use((error, req, res, next) => {
-  console.error("Error:", error);
+  console.error("Server Error:", error);
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.header("Access-Control-Allow-Credentials", "true");
   res.status(500).json({
     success: false,
-    message: "Internal server error",
-    error: process.env.NODE_ENV === "production" ? {} : error.message,
+    message: error.message || "Internal server error",
   });
 });
 
@@ -255,9 +160,9 @@ if (!process.env.VERCEL && process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 5000;
 
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`🚀 Server running on port ${PORT}`);
     connectDB().catch((err) => {
-      console.error("Initial MongoDB connection warning:", err.message);
+      console.warn("⚠️ Initial DB connection warning:", err.message);
     });
   });
 }

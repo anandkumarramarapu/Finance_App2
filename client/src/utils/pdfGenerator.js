@@ -207,6 +207,21 @@ export const generateMembersWeekPDF = (users = [], title = "Chit Fund - Member W
     alternateRowStyles: {
       fillColor: [243, 244, 246],
     },
+    didParseCell: (data) => {
+      // Highlight in red if Weeks Since Joined is 12 or more
+      if (data.section === "body" && data.column.index === 5) {
+        const cellRaw = String(data.cell.raw || "");
+        const match = cellRaw.match(/\d+/);
+        if (match) {
+          const weeks = parseInt(match[0], 10);
+          if (weeks >= 12) {
+            data.cell.styles.fillColor = [220, 38, 38]; // Red fill
+            data.cell.styles.textColor = [255, 255, 255]; // White text
+            data.cell.styles.fontStyle = "bold";
+          }
+        }
+      }
+    },
     margin: { left: 10, right: 10 },
     didDrawPage: (data) => {
       // Footer page numbering

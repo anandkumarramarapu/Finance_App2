@@ -133,7 +133,13 @@ import {
                           <td className="px-3 py-2.5 text-center text-gray-500 whitespace-nowrap">
                             {currentDateStr}
                           </td>
-                          <td className="px-3 py-2.5 text-center font-bold text-emerald-700 bg-emerald-50/50 whitespace-nowrap">
+                          <td
+                            className={`px-3 py-2.5 text-center font-bold whitespace-nowrap transition-colors ${
+                              weeksSinceJoin >= 12
+                                ? "bg-red-600 text-white font-extrabold shadow-inner"
+                                : "text-emerald-700 bg-emerald-50/50"
+                            }`}
+                          >
                             {weeksSinceJoin} {weeksSinceJoin === 1 ? "week" : "weeks"}
                           </td>
                           <td className="px-3 py-2.5 text-center text-gray-700 whitespace-nowrap">

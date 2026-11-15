@@ -439,7 +439,13 @@ const UserList = () => {
                             <div>Start: {formatDate(user.startDate)}</div>
                             <div>End: {getEndDate(user)}</div>
                           </div>
-                          <div className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md inline-block">
+                          <div
+                            className={`text-xs font-bold px-2 py-0.5 rounded-md inline-block ${
+                              calculateWeeksSinceJoin(user.startDate) >= 12
+                                ? "bg-red-600 text-white shadow-sm"
+                                : "text-emerald-700 bg-emerald-50"
+                            }`}
+                          >
                             📅 {calculateWeeksSinceJoin(user.startDate)}{" "}
                             {calculateWeeksSinceJoin(user.startDate) === 1
                               ? "week"
