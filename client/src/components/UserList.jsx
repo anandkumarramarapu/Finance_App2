@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { userPaymentAPI } from "../services/api";
+import {
+  generateMembersWeekPDF,
+  calculateWeeksSinceJoin,
+  formatDate,
+  getEndDate,
+} from "../utils/pdfGenerator";
+import PDFPreviewModal from "./PDFPreviewModal";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -7,6 +14,7 @@ const UserList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [tenureTypeFilter, setTenureTypeFilter] = useState("all");
+  const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -144,15 +152,25 @@ const UserList = () => {
             Manage all chit fund members and their details
           </p>
         </div>
-        <button
-          onClick={fetchUsers}
-          className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-6 py-3 rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-3 font-semibold group"
-        >
-          <span className="group-hover:rotate-180 transition-transform duration-500">
-            🔄
-          </span>
-          <span>Refresh Data</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => setIsPDFModalOpen(true)}
+            className="bg-gradient-to-r from-red-500 to-rose-600 text-white px-6 py-3 rounded-xl hover:from-red-600 hover:to-rose-700 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-3 font-semibold group cursor-pointer"
+            title="Preview and download PDF report"
+          >
+            <span className="text-xl">📄</span>
+            <span>PDF Preview & Download</span>
+          </button>
+          <button
+            onClick={fetchUsers}
+            className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-6 py-3 rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-3 font-semibold group cursor-pointer"
+          >
+            <span className="group-hover:rotate-180 transition-transform duration-500">
+              🔄
+            </span>
+            <span>Refresh Data</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats Overview */}
@@ -299,8 +317,8 @@ const UserList = () => {
             </h3>
             <p className="text-gray-600 max-w-md mx-auto mb-6">
               {searchTerm ||
-              statusFilter !== "all" ||
-              tenureTypeFilter !== "all"
+                statusFilter !== "all" ||
+                tenureTypeFilter !== "all"
                 ? "Try adjusting your search criteria or filters"
                 : "Get started by creating your first member"}
             </p>
@@ -417,9 +435,16 @@ const UserList = () => {
                             ₹{user.totalPaidAmount?.toLocaleString() || "0"}{" "}
                             paid
                           </div>
-                          <div className="text-xs text-gray-500">
-                            Started:{" "}
-                            {new Date(user.startDate).toLocaleDateString()}
+                          <div className="text-xs text-gray-500 space-y-0.5">
+                            <div>Start: {formatDate(user.startDate)}</div>
+                            <div>End: {getEndDate(user)}</div>
+                          </div>
+                          <div className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md inline-block">
+                            📅 {calculateWeeksSinceJoin(user.startDate)}{" "}
+                            {calculateWeeksSinceJoin(user.startDate) === 1
+                              ? "week"
+                              : "weeks"}{" "}
+                            since joined
                           </div>
                         </div>
                       </td>
@@ -484,6 +509,13 @@ const UserList = () => {
           </div>
         </div>
       )}
+      {/* PDF Preview & Download Modal */}
+      <PDFPreviewModal
+        isOpen={isPDFModalOpen}
+        onClose={() => setIsPDFModalOpen(false)}
+        users={filteredUsers.length > 0 ? filteredUsers : users}
+        title="Chit Fund - Member Weeks Report"
+      />
     </div>
   );
 };

@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { userPaymentAPI } from "../services/api";
+import {
+  generateMembersWeekPDF,
+  formatDate,
+  getEndDate,
+} from "../utils/pdfGenerator";
+import PDFPreviewModal from "./PDFPreviewModal";
 
 const UpcomingPayments = () => {
   const [users, setUsers] = useState([]);
@@ -9,6 +15,7 @@ const UpcomingPayments = () => {
   const [loading, setLoading] = useState(true);
   const [recordingPayment, setRecordingPayment] = useState(null);
   const [searchTerm, setSearchTerm] = useState(""); // New state for search
+  const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
 
   // New state for financial summary
   const [financialSummary, setFinancialSummary] = useState({
@@ -369,7 +376,7 @@ const UpcomingPayments = () => {
       console.error("Error recording payment:", error);
       alert(
         "Failed to record payment: " +
-          (error.response?.data?.message || error.message)
+        (error.response?.data?.message || error.message)
       );
     } finally {
       setRecordingPayment(null);
@@ -501,15 +508,25 @@ const UpcomingPayments = () => {
             Complete payment management system
           </p>
         </div>
-        <button
-          onClick={fetchUsers}
-          className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-6 py-3 rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-3 font-semibold group"
-        >
-          <span className="group-hover:rotate-180 transition-transform duration-500">
-            🔄
-          </span>
-          <span>Refresh Data</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => setIsPDFModalOpen(true)}
+            className="bg-gradient-to-r from-red-500 to-rose-600 text-white px-6 py-3 rounded-xl hover:from-red-600 hover:to-rose-700 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-3 font-semibold group cursor-pointer"
+            title="Preview and download PDF report"
+          >
+            <span className="text-xl">📄</span>
+            <span>PDF Preview & Download</span>
+          </button>
+          <button
+            onClick={fetchUsers}
+            className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-6 py-3 rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-3 font-semibold group cursor-pointer"
+          >
+            <span className="group-hover:rotate-180 transition-transform duration-500">
+              🔄
+            </span>
+            <span>Refresh Data</span>
+          </button>
+        </div>
       </div>
 
       {/* Financial Summary Cards */}
@@ -665,9 +682,8 @@ const UpcomingPayments = () => {
               {paymentType === "week" ? "Sunday" : "1st of the month"}
               {!isCurrentPeriod() && (
                 <span
-                  className={`ml-2 font-semibold ${
-                    isPastPeriod() ? "text-red-600" : "text-amber-600"
-                  }`}
+                  className={`ml-2 font-semibold ${isPastPeriod() ? "text-red-600" : "text-amber-600"
+                    }`}
                 >
                   ({isPastPeriod() ? "Past Period" : "Future Period"})
                 </span>
@@ -737,8 +753,8 @@ const UpcomingPayments = () => {
               {searchTerm
                 ? "No members match your search criteria"
                 : paymentType === "week"
-                ? "No weekly payments due for this week"
-                : "No monthly payments due for this month"}
+                  ? "No weekly payments due for this week"
+                  : "No monthly payments due for this month"}
             </p>
             {searchTerm && (
               <button
@@ -788,21 +804,19 @@ const UpcomingPayments = () => {
                   return (
                     <tr
                       key={user._id}
-                      className={`transition-all duration-300 group ${
-                        status === "paid"
-                          ? "bg-gray-50 hover:bg-gray-100"
-                          : "hover:bg-emerald-50/50"
-                      }`}
+                      className={`transition-all duration-300 group ${status === "paid"
+                        ? "bg-gray-50 hover:bg-gray-100"
+                        : "hover:bg-emerald-50/50"
+                        }`}
                     >
                       <td className="px-6 py-5">
                         <div className="flex items-center space-x-4">
                           <div className="relative">
                             <div
-                              className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${
-                                status === "paid"
-                                  ? "bg-gradient-to-br from-gray-400 to-gray-500"
-                                  : "bg-gradient-to-br from-emerald-500 to-emerald-600"
-                              }`}
+                              className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${status === "paid"
+                                ? "bg-gradient-to-br from-gray-400 to-gray-500"
+                                : "bg-gradient-to-br from-emerald-500 to-emerald-600"
+                                }`}
                             >
                               <span className="text-white font-semibold text-sm">
                                 {user.memberName?.charAt(0) || "U"}
@@ -811,11 +825,10 @@ const UpcomingPayments = () => {
                           </div>
                           <div>
                             <div
-                              className={`font-semibold group-hover:text-emerald-700 transition-colors ${
-                                status === "paid"
-                                  ? "text-gray-600"
-                                  : "text-gray-900"
-                              }`}
+                              className={`font-semibold group-hover:text-emerald-700 transition-colors ${status === "paid"
+                                ? "text-gray-600"
+                                : "text-gray-900"
+                                }`}
                             >
                               {user.memberName}
                             </div>
@@ -825,9 +838,8 @@ const UpcomingPayments = () => {
                               <span>🆔 {user.aadharNumber}</span>
                             </div>
                             <div className="text-xs text-gray-400 mt-1">
-                              Start:{" "}
-                              {new Date(user.startDate).toLocaleDateString()} |
-                              End: {new Date(user.endDate).toLocaleDateString()}
+                              Start: {formatDate(user.startDate)} | End:{" "}
+                              {getEndDate(user)}
                             </div>
                           </div>
                         </div>
@@ -835,11 +847,10 @@ const UpcomingPayments = () => {
                       <td className="px-6 py-5">
                         <div className="space-y-2">
                           <div
-                            className={`font-semibold text-lg ${
-                              status === "paid"
-                                ? "text-gray-600"
-                                : "text-gray-900"
-                            }`}
+                            className={`font-semibold text-lg ${status === "paid"
+                              ? "text-gray-600"
+                              : "text-gray-900"
+                              }`}
                           >
                             ₹{user.monthlyPremium?.toLocaleString()}
                           </div>
@@ -848,11 +859,10 @@ const UpcomingPayments = () => {
                             {periodNumber} of {user.tenure}
                           </div>
                           <div
-                            className={`text-xs font-medium px-2 py-1 rounded-full inline-block ${
-                              status === "paid"
-                                ? "text-gray-600 bg-gray-100"
-                                : "text-emerald-600 bg-emerald-50"
-                            }`}
+                            className={`text-xs font-medium px-2 py-1 rounded-full inline-block ${status === "paid"
+                              ? "text-gray-600 bg-gray-100"
+                              : "text-emerald-600 bg-emerald-50"
+                              }`}
                           >
                             Due: {paymentType === "week" ? "Sunday" : "1st"}
                           </div>
@@ -879,11 +889,10 @@ const UpcomingPayments = () => {
                       <td className="px-6 py-5">
                         <div className="space-y-2">
                           <span
-                            className={`inline-flex items-center space-x-1 px-3 py-1.5 rounded-full text-xs font-semibold ${
-                              status === "paid"
-                                ? "bg-gray-100 text-gray-800 border border-gray-200"
-                                : "bg-red-100 text-red-800 border border-red-200"
-                            }`}
+                            className={`inline-flex items-center space-x-1 px-3 py-1.5 rounded-full text-xs font-semibold ${status === "paid"
+                              ? "bg-gray-100 text-gray-800 border border-gray-200"
+                              : "bg-red-100 text-red-800 border border-red-200"
+                              }`}
                           >
                             <span>{status === "paid" ? "✅" : "❌"}</span>
                             <span>{status === "paid" ? "Paid" : "Unpaid"}</span>
@@ -936,6 +945,13 @@ const UpcomingPayments = () => {
           </div>
         )}
       </div>
+      {/* PDF Preview & Download Modal */}
+      <PDFPreviewModal
+        isOpen={isPDFModalOpen}
+        onClose={() => setIsPDFModalOpen(false)}
+        users={filteredUsers.length > 0 ? filteredUsers : users}
+        title="Raghuram Finance - Weekly Payment Collection Report"
+      />
     </div>
   );
 };

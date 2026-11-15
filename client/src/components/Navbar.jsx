@@ -23,7 +23,7 @@ const Navbar = ({ activeTab, setActiveTab }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (accessCode === "AnandMaster") {
+    if (accessCode === "anand444") {
       setActiveTab("AnandMaster");
       setIsProfilePopupOpen(false);
       setAccessCode("");
@@ -69,11 +69,10 @@ const Navbar = ({ activeTab, setActiveTab }) => {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`relative flex items-center space-x-2 px-4 py-2.5 rounded-xl transition-all duration-300 group ${
-                  activeTab === item.id
+                className={`relative flex items-center space-x-2 px-4 py-2.5 rounded-xl transition-all duration-300 group ${activeTab === item.id
                     ? "bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-transparent"
-                }`}
+                  }`}
               >
                 {/* Active indicator bar */}
                 {activeTab === item.id && (
@@ -81,9 +80,8 @@ const Navbar = ({ activeTab, setActiveTab }) => {
                 )}
 
                 <span
-                  className={`text-lg transition-transform duration-300 group-hover:scale-110 ${
-                    activeTab === item.id ? "scale-110" : ""
-                  }`}
+                  className={`text-lg transition-transform duration-300 group-hover:scale-110 ${activeTab === item.id ? "scale-110" : ""
+                    }`}
                 >
                   {item.icon}
                 </span>
@@ -93,11 +91,10 @@ const Navbar = ({ activeTab, setActiveTab }) => {
 
                 {/* Hover effect */}
                 <div
-                  className={`absolute inset-0 rounded-xl transition-opacity duration-300 ${
-                    activeTab === item.id
+                  className={`absolute inset-0 rounded-xl transition-opacity duration-300 ${activeTab === item.id
                       ? "bg-emerald-500 opacity-5"
                       : "bg-gray-500 opacity-0 group-hover:opacity-5"
-                  }`}
+                    }`}
                 ></div>
               </button>
             ))}
@@ -117,27 +114,23 @@ const Navbar = ({ activeTab, setActiveTab }) => {
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`p-2 rounded-xl transition-all duration-300 ${
-                isMobileMenuOpen
+              className={`p-2 rounded-xl transition-all duration-300 ${isMobileMenuOpen
                   ? "bg-gray-100 text-gray-700 border border-gray-200"
                   : "text-gray-600 hover:bg-gray-50 border border-transparent"
-              }`}
+                }`}
             >
               <div className="w-6 h-6 relative">
                 <span
-                  className={`absolute block w-6 h-0.5 bg-current transform transition-all duration-300 ${
-                    isMobileMenuOpen ? "rotate-45 top-3" : "top-2"
-                  }`}
+                  className={`absolute block w-6 h-0.5 bg-current transform transition-all duration-300 ${isMobileMenuOpen ? "rotate-45 top-3" : "top-2"
+                    }`}
                 ></span>
                 <span
-                  className={`absolute block w-6 h-0.5 bg-current top-3 transition-all duration-300 ${
-                    isMobileMenuOpen ? "opacity-0" : "opacity-100"
-                  }`}
+                  className={`absolute block w-6 h-0.5 bg-current top-3 transition-all duration-300 ${isMobileMenuOpen ? "opacity-0" : "opacity-100"
+                    }`}
                 ></span>
                 <span
-                  className={`absolute block w-6 h-0.5 bg-current transform transition-all duration-300 ${
-                    isMobileMenuOpen ? "-rotate-45 top-3" : "top-4"
-                  }`}
+                  className={`absolute block w-6 h-0.5 bg-current transform transition-all duration-300 ${isMobileMenuOpen ? "-rotate-45 top-3" : "top-4"
+                    }`}
                 ></span>
               </div>
             </button>
@@ -146,9 +139,8 @@ const Navbar = ({ activeTab, setActiveTab }) => {
 
         {/* Mobile Navigation */}
         <div
-          className={`md:hidden transition-all duration-300 overflow-hidden ${
-            isMobileMenuOpen ? "max-h-96 opacity-100 pb-4" : "max-h-0 opacity-0"
-          }`}
+          className={`md:hidden transition-all duration-300 overflow-hidden ${isMobileMenuOpen ? "max-h-96 opacity-100 pb-4" : "max-h-0 opacity-0"
+            }`}
         >
           <div className="bg-gray-50 rounded-2xl border border-gray-200 mt-2 p-2 space-y-1">
             {navItems.map((item) => (
@@ -158,18 +150,16 @@ const Navbar = ({ activeTab, setActiveTab }) => {
                   setActiveTab(item.id);
                   setIsMobileMenuOpen(false);
                 }}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 group ${
-                  activeTab === item.id
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 group ${activeTab === item.id
                     ? "bg-emerald-50 text-emerald-700 shadow-sm border border-emerald-200"
                     : "text-gray-600 hover:bg-white hover:text-gray-900"
-                }`}
+                  }`}
               >
                 <span
-                  className={`text-lg transition-transform duration-300 ${
-                    activeTab === item.id
+                  className={`text-lg transition-transform duration-300 ${activeTab === item.id
                       ? "scale-110"
                       : "group-hover:scale-110"
-                  }`}
+                    }`}
                 >
                   {item.icon}
                 </span>

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { userPaymentAPI } from "../services/api";
+import { generateMembersWeekPDF } from "../utils/pdfGenerator";
+import PDFPreviewModal from "./PDFPreviewModal";
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -8,8 +10,10 @@ const Dashboard = () => {
     completedUsers: 0,
     totalRevenue: 0,
   });
+  const [allUsers, setAllUsers] = useState([]);
   const [recentUsers, setRecentUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -42,6 +46,7 @@ const Dashboard = () => {
           totalRevenue,
         });
 
+        setAllUsers(users);
         setRecentUsers(users.slice(0, 5));
       }
     } catch (error) {
@@ -97,15 +102,25 @@ const Dashboard = () => {
             Welcome to ChitFund Management System
           </p>
         </div>
-        <button
-          onClick={fetchDashboardData}
-          className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-6 py-3 rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-3 font-semibold group"
-        >
-          <span className="group-hover:rotate-180 transition-transform duration-500">
-            🔄
-          </span>
-          <span>Refresh Data</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => setIsPDFModalOpen(true)}
+            className="bg-gradient-to-r from-red-500 to-rose-600 text-white px-6 py-3 rounded-xl hover:from-red-600 hover:to-rose-700 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-3 font-semibold group cursor-pointer"
+            title="Preview and download PDF report"
+          >
+            <span className="text-xl">📄</span>
+            <span>PDF Preview & Download</span>
+          </button>
+          <button
+            onClick={fetchDashboardData}
+            className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-6 py-3 rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-3 font-semibold group cursor-pointer"
+          >
+            <span className="group-hover:rotate-180 transition-transform duration-500">
+              🔄
+            </span>
+            <span>Refresh Data</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats Grid */}
@@ -230,13 +245,12 @@ const Dashboard = () => {
                   </div>
                   <div className="text-right">
                     <span
-                      className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${
-                        user.status === "active"
-                          ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                          : user.status === "completed"
+                      className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${user.status === "active"
+                        ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                        : user.status === "completed"
                           ? "bg-blue-100 text-blue-800 border border-blue-200"
                           : "bg-gray-100 text-gray-800 border border-gray-200"
-                      }`}
+                        }`}
                     >
                       {user.status}
                     </span>
@@ -259,6 +273,13 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+      {/* PDF Preview & Download Modal */}
+      <PDFPreviewModal
+        isOpen={isPDFModalOpen}
+        onClose={() => setIsPDFModalOpen(false)}
+        users={allUsers}
+        title="Raghuram Finance - Overview Report"
+      />
     </div>
   );
 };
