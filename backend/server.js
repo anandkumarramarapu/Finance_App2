@@ -30,17 +30,15 @@ app.use(
 );
 
 // Resilient CORS configuration - allows requests from any origin with credentials
+const cors = require("cors");
+
 app.use(
   cors({
-    origin: (origin, callback) => callback(null, true),
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "X-Requested-With",
-      "Accept",
+    origin: [
+      "http://localhost:5173",
+      "https://finance-app2-dah6.vercel.app"
     ],
+    credentials: true,
   })
 );
 
