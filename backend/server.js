@@ -155,6 +155,33 @@ app.use((error, req, res, next) => {
 const handler = app;
 export default handler;
 
+// Debug endpoint – shows env vars and DB connection status (remove before production)
+app.get("/api/debug-env", async (req, res) => {
+  try {
+    // Ensure DB is connected before checking collections
+    await connectDB();
+    const collections = await mongoose.connection.db.listCollections().toArray();
+    res.json({
+      success: true,
+      env: {
+        MONGODB_URI: process.env.MONGODB_URI,
+        NODE_ENV: process.env.NODE_ENV,
+      },
+      collections,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+      env: {
+        MONGODB_URI: process.env.MONGODB_URI,
+        NODE_ENV: process.env.NODE_ENV,
+      },
+    });
+  }
+});
+
+
 /* ----------------------- LOCAL DEVELOPMENT ONLY ----------------------- */
 if (!process.env.VERCEL) {
   const PORT = process.env.PORT || 5000;
