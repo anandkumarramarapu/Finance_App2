@@ -24,7 +24,37 @@ import {
 
     const currentDateStr = formatDate(new Date());
 
-    // Calculate total weekly amount only (as requested)
+    // Sort: red rows (>=12 weeks) first, then descending weeks
+const sortedList = [...filteredList].sort((a, b) => {
+  const weeksA = calculateWeeksSinceJoin(a.startDate);
+  const weeksB = calculateWeeksSinceJoin(b.startDate);
+  const aRed = weeksA >= 12;
+  const bRed = weeksB >= 12;
+  if (aRed && !bRed) return -1; // a red goes before non‑red
+  if (!aRed && bRed) return 1;  // b red before a
+  // both same colour status – sort by weeks descending
+  return weeksB - weeksA;
+});
+// total based on sorted list
+const totalWeeklyAmount = sortedList.reduce((sum, user) => sum + getWeeklyAmount(user), 0);
+  const sortedList = [...filteredList].sort((a, b) => {
+    const weeksA = calculateWeeksSinceJoin(a.startDate);
+    const weeksB = calculateWeeksSinceJoin(b.startDate);
+    return weeksB - weeksA; // descending order
+  });
+  const totalWeeklyAmount = sortedList.reduce(
+    (sum, user) => sum + getWeeklyAmount(user),
+    0
+  );
+    const sortedList = [...filteredList].sort((a, b) => {
+      const weeksA = calculateWeeksSinceJoin(a.startDate);
+      const weeksB = calculateWeeksSinceJoin(b.startDate);
+      const aRed = weeksA === 12;
+      const bRed = weeksB === 12;
+      if (aRed && !bRed) return -1;
+      if (!aRed && bRed) return 1;
+      return 0;
+    });
     const totalWeeklyAmount = filteredList.reduce(
       (sum, user) => sum + getWeeklyAmount(user),
       0
