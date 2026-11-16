@@ -30,7 +30,7 @@ app.use(
 );
 
 // Resilient CORS configuration - allows requests from any origin with credentials
-const cors = require("cors");
+
 
 app.use(
   cors({
