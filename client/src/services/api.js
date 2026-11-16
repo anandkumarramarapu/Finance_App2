@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Base URL: use VITE_API_URL env variable for local dev, otherwise relative "/api" for production (Vercel)
-const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+const API_BASE_URL = "https://finance-app2-wine.vercel.app/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
